@@ -1,0 +1,131 @@
+#include <conio.h>
+#include <dos.h>
+#include <graphics.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX_X 78
+#define MAX_Y 38
+#define ESC 27
+
+void ir_para(int x, int y) {
+    moveto(x, y);
+}
+
+void imprimir_comida(int mx[], int my[]) {
+    int i;
+    for (i = 0; i < 20; i++) {
+        ir_para(mx[i], my[i]);
+        if (mx[i] != 0 && my[i] != 0)
+            outtext("X");
+    }
+}
+
+void desenhar_borda() {
+    rectangle(0, 0, MAX_X, MAX_Y);
+}
+
+int main() {
+    int gdriver = DETECT, gmode;
+    initgraph(&gdriver, &gmode, "C:\\Turboc3\\BGI");
+
+    int velocidade = 300;
+    int pontos = 0;
+    char tecla = 'a';
+    int cx[300] = {0}, cy[300] = {0}; // Inicialize cx[0] e cy[0] com 0
+    int mx[20], my[20];
+    clock_t inicio, fim;
+    double tempo;
+    int t = 1; // Defina t como 1 em vez de 2
+    int d = 0;
+    int x;
+    int i;
+
+    srand(time(NULL));
+    for (i = 0; i < 20; i++) {
+        mx[i] = (rand() % MAX_X) + 1;
+        my[i] = (rand() % MAX_Y) + 1;
+    }
+
+    desenhar_borda();
+    imprimir_comida(mx, my);
+    inicio = clock();
+
+    while (tecla != ESC && pontos <= 19) {
+        if (_kbhit()) {
+            tecla = _getch();
+
+            if (tecla == 'w' || tecla == 'i' || tecla == 72)
+                d = 1;
+            if (tecla == 'a' || tecla == 'j' || tecla == 75)
+                d = 0;
+            if (tecla == 's' || tecla == 'k' || tecla == 80)
+                d = 3;
+            if (tecla == 'd' || tecla == 'l' || tecla == 77)
+                d = 2;
+        }
+
+        for (x = t; x > 0; x--) {
+            cx[x] = cx[x - 1];
+            cy[x] = cy[x - 1];
+        }
+
+        if (d == 0)
+            cx[0]--;
+        if (d == 1)
+            cy[0]--;
+        if (d == 2)
+            cx[0]++;
+        if (d == 3)
+            cy[0]++;
+
+        ir_para(cx[t], cy[t]);
+        outtext(" ");
+
+        for (i = 0; i < 20; i++) {
+            if (mx[i] == cx[0] && my[i] == cy[0]) {
+                pontos++;
+                t++;
+                mx[i] = (rand() % MAX_X) + 1;
+                my[i] = (rand() % MAX_Y) + 1;
+                break;
+            }
+        }
+
+        ir_para(cx[0], cy[0]);
+        outtext("$");
+
+        setcolor(WHITE);
+        outtextxy(0, MAX_Y + 2, "Pontos: ");
+        outtextxy(60, MAX_Y + 2, "Tempo: ");
+        outtextxy(75, MAX_Y + 2, tempo);
+
+        delay(velocidade);
+
+        fim = clock();
+        tempo = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
+
+        for (x = 1; x < t; x++) {
+            if (cx[0] == cx[x] && cy[0] == cy[x])
+                tecla = ESC;
+        }
+
+        if (cy[0] <= 0)
+            cy[0] = MAX_Y;
+        if (cy[0] >= MAX_Y + 1)
+            cy[0] = 0;
+        if (cx[0] <= 0)
+            cx[0] = MAX_X;
+        if (cx[0] >= MAX_X + 1)
+            cx[0] = 0;
+    }
+
+    closegraph();
+
+    system("PAUSE");
+    system("cls");
+
+    return 0;
+}
